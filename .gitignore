@@ -1,0 +1,48 @@
+# Rust and Tauri generated output
+/target/
+**/target/
+**/src-tauri/gen/
+
+# Node, Vite, tests and caches
+node_modules/
+dist/
+coverage/
+.vite/
+.cache/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local environment and secrets; retain safe example templates
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local SQLite databases and sidecars
+*.sqlite
+*.sqlite3
+*.db
+*.sqlite-*
+*.sqlite3-*
+*.db-*
+
+# Operating systems
+.DS_Store
+._*
+.Spotlight-V100/
+.Trashes/
+Thumbs.db
+Desktop.ini
+
+# IDE and editor state
+.idea/
+.vscode/
+.vs/
+*.suo
+*.user
+*.swp
+*.swo
+*~
