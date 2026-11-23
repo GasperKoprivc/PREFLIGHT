@@ -2741,8 +2741,10 @@ name = "preflight-desktop"
 version = "0.1.0"
 dependencies = [
  "preflight-core",
+ "serde",
  "tauri",
  "tauri-build",
+ "tokio",
 ]
 
 [[package]]
