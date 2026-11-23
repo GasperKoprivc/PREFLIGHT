@@ -13,3 +13,9 @@ Faze se po izrecnem uporabnikovem naročilu razvijajo zaporedno do 03, na ločen
 26 Rust testov uspešnih (5 CLI, 6 unit, 15 engine). Vključeni so simulirani manjkajoči programi, Python launcher, Java/JDK, neveljavni profili, zasebnost in resnična testa timeouta/omejitve izhoda s testnim podprocesom. Testi ne potrebujejo lokalne Jave. Cargo fmt, Clippy in lokalna gradnja so preverjeni.
 
 Pravi profil python-workshop.yaml na razvojnem Windows računalniku vrne dva pass in eno neobvezno opozorilo (Node je zunaj zahtevanega razpona 22); text in JSON vrneta exit 0. Izpis ne vsebuje poti ali surovega stdout/stderr. Podrobne lokalne rezultate namenoma hranimo zunaj Gita.
+
+# Preverjanje faze 03
+
+28 Rust testov in 7 React komponentnih testov uspešnih. Preverjeni so IPC klic, prikaz rezultatov in ponovni zagon, zaklep med preverjanjem, unknown/timeout, varna napaka, prazni profili ter tema/zasebnost. ESLint/TypeScript, Rust fmt/Clippy in celoten npm/Cargo build so uspešni.
+
+Tauri dev se zgradi in zažene. Ponovni vizualni pregled faze 03 je omejen: orodje za nadzor oken javlja minimizirano okno oziroma zaznan uporabnikov vnos in ne omogoči zanesljivega zajema. Funkcionalni preizkus začetnega Tauri okna v fazi 01 je uspel; dejanskega klika končne diagnostike ne označujemo kot ročno potrjenega. Dashboard je bil pregledan tudi v brskalniku, z vidnim napisom »v pripravi«.

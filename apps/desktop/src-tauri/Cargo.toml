@@ -5,5 +5,7 @@ edition.workspace = true
 [dependencies]
 tauri = { version = "2", features = [] }
 preflight-core.workspace = true
+serde.workspace = true
+tokio.workspace = true
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

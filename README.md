@@ -51,3 +51,11 @@ Exit kode: 0 = vse obvezne zahteve izpolnjene, 1 = vsaj ena ni izpolnjena (tudi 
 Profil uporablja `schema_version: 1`, enolične ID-je in samo `type: runtime` z `tool: python|git|node|java`. Java pomeni JDK: preverita se java in javac. Omejitve sledijo Rust semver, npr. `>=22.0.0,<23.0.0`; golo `22.0.0` pomeni združljiv razpon, za točno različico uporabi `=22.0.0`. Stare Java 1.8.0_412 različice se normalizirajo na 8.0.412. Nestabilni/neprepoznani izpisi vrnejo unknown. YAML je omejen na 64 KiB, 32 preverjanj, globino 8; neznana polja, tagi, aliasi in več dokumentov niso dovoljeni.
 
 Vsak proces ima 5 sekund in največ 32 KiB skupnega izhoda; stdout/stderr se bereta sočasno in omejeno. Procesi se poženejo neposredno s statičnimi argumenti, brez shell-a, in se ob omejitvi ustavijo. Python: Windows python, nato py -3; Unix python3, nato python. JSON ne vsebuje surovega izhoda, poti do profila ali podatkov o računalniku. ID-ji preverjanj prihajajo iz profila: vanje ne zapisuj osebnih podatkov. Izpisov ne shranjuj v Git.
+
+## Namizni pregled (faza 03)
+
+`npm run dev:desktop` odpre namizno aplikacijo. Izberi Python delavnico, klikni »Zaženi preverjanje«, razširi posamezno vrstico za razlago in klikni »Ponovno preveri«. Obvezni unknown prepreči oznako pripravljenosti. Med izvajanjem sta izbira profila in ponovni zagon zaklenjena tudi v Rust sloju.
+
+Pregleda Zasebnost in Nastavitve pojasnita lokalno obdelavo in omogočata sistemsko/svetlo/temno temo. Tipkovnica: Tab za premik, Enter/Space za gumbe in podrobnosti. Obstajajo vidni fokus, skip link in živi povzetek. Rezultati se ohranijo samo v pomnilniku; shrani se le izbira teme. Aplikacija neposredno kliče preflight-core, brez CLI podprocesa ali klicev API strežnika.
+
+V tej fazi je na voljo en vgrajen profil. Uvoz profilov, dodatna diagnostika in izvoz so predmet faze 04. Učiteljsko deljenje še ni na voljo.
