@@ -38,3 +38,16 @@ npm run build:desktop
 Faza 00 pripravi repozitorij; faza 01 ogrodje; faza 02 tipizirane profile in CLI preverjanja; faza 03 offline namizni pregled rezultatov. Celotni načrt je v [ROADMAP.md](ROADMAP.md), dogovor v [AGENTS.md](AGENTS.md), začetna priprava v [START_HERE.md](START_HERE.md).
 
 Implementacija uporablja [uradni Tauri IPC](https://v2.tauri.app/develop/calling-rust/) in [Vite](https://vite.dev/guide/). JavaScript nima splošnih shell ali filesystem dovoljenj. Lock datoteki sta vključeni v Git.
+
+## CLI preverjanje
+
+```sh
+cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --format text
+cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --format json
+```
+
+Exit kode: 0 = vse obvezne zahteve izpolnjene, 1 = vsaj ena ni izpolnjena (tudi unknown), 2 = neveljaven/neberljiv profil ali napačna uporaba CLI. Neobvezna neustrezna različica vrne warning. `unknown` nikoli ne šteje kot uspešno preverjanje.
+
+Profil uporablja `schema_version: 1`, enolične ID-je in samo `type: runtime` z `tool: python|git|node|java`. Java pomeni JDK: preverita se java in javac. Omejitve sledijo Rust semver, npr. `>=22.0.0,<23.0.0`; golo `22.0.0` pomeni združljiv razpon, za točno različico uporabi `=22.0.0`. Stare Java 1.8.0_412 različice se normalizirajo na 8.0.412. Nestabilni/neprepoznani izpisi vrnejo unknown. YAML je omejen na 64 KiB, 32 preverjanj, globino 8; neznana polja, tagi, aliasi in več dokumentov niso dovoljeni.
+
+Vsak proces ima 5 sekund in največ 32 KiB skupnega izhoda; stdout/stderr se bereta sočasno in omejeno. Procesi se poženejo neposredno s statičnimi argumenti, brez shell-a, in se ob omejitvi ustavijo. Python: Windows python, nato py -3; Unix python3, nato python. JSON ne vsebuje surovega izhoda, poti do profila ali podatkov o računalniku. ID-ji preverjanj prihajajo iz profila: vanje ne zapisuj osebnih podatkov. Izpisov ne shranjuj v Git.

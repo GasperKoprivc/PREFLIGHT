@@ -1,3 +1,9 @@
+pub mod engine;
+pub mod model;
+pub mod process;
+pub mod version;
+pub use engine::check_profile;
+pub use model::{Check, CheckResult, Error, Profile, ReasonCode, Report, Status, Summary, Tool};
 use serde::Serialize;
 #[derive(Serialize)]
 pub struct AppInfo {
