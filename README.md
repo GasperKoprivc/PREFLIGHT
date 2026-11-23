@@ -1,12 +1,12 @@
 # Preflight
 
-Preflight pred delavnico lokalno preveri razvojno okolje. Namizna aplikacija in CLI uporabljata isto Rust jedro. Rezultati ostanejo na računalniku; učiteljske sobe in deljenje so načrtovani za poznejše faze.
+Preflight checks your local development environment before a workshop. The desktop application and CLI share the same Rust core. Results stay on your computer; teacher rooms and result sharing are planned for later phases.
 
-## Razvoj
+## Development
 
-Zahteve: Node.js 24+, npm, stabilni Rust in [predpogoji Tauri 2](https://v2.tauri.app/start/prerequisites/). Windows potrebuje MSVC C++ Build Tools in WebView2; macOS Xcode Command Line Tools; Linux WebKitGTK 4.1 in knjižnice iz CI workflowa. Orodji cargo in npm morata biti na PATH. V PowerShell lahko ob omejitvi izvajanja skript uporabiš `npm.cmd`.
+Requirements: Node.js 24+, npm, stable Rust, and the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/). Windows requires MSVC C++ Build Tools and WebView2; macOS requires Xcode Command Line Tools; Linux requires WebKitGTK 4.1 and the libraries listed in the CI workflow. Both cargo and npm must be on PATH. In PowerShell, use `npm.cmd` if script execution restrictions prevent running npm.
 
-Iz korena repozitorija:
+From the repository root:
 
 ```sh
 npm ci
@@ -16,7 +16,7 @@ npm run dev:server
 cargo run -p preflight-cli -- --help
 ```
 
-Vsak dev ukaz zaženi v svojem terminalu. Dashboard je na http://127.0.0.1:1421, API na http://127.0.0.1:3001/health (vrne `ok`). Desktop Vite strežnik uporablja vrata 1420; Rust ukazi delujejo samo v Tauri oknu.
+Run each development command in a separate terminal. The dashboard runs at http://127.0.0.1:1421 and the API at http://127.0.0.1:3001/health (returns `ok`). The desktop Vite server uses port 1420; Rust commands work only inside the Tauri window.
 
 ```sh
 npm run build
@@ -25,37 +25,37 @@ npm test
 npm run build:desktop
 ```
 
-`build` zgradi oba frontenda in celotni Cargo workspace. `build:desktop` ustvari produkcijsko namizno izvršljivo datoteko brez namestitvenega paketa. `lint` preveri ESLint, TypeScript, Rust fmt in Clippy. CI preveri tri OS. Namestitveni paketi in podpisovanje pridejo pozneje.
+`build` builds both frontends and the entire Cargo workspace. `build:desktop` creates a production desktop executable without an installer. `lint` checks ESLint, TypeScript, Rust formatting, and Clippy. CI checks all three operating systems. Installers and code signing are planned for later phases.
 
-## Moduli in načrt
+## Modules and roadmap
 
-- `crates/preflight-core`: skupno jedro.
-- `crates/preflight-cli`: ukaz `preflight`.
-- `apps/desktop`: React/TypeScript/Vite + Tauri 2; eksplicitni Rust command `get_app_info`.
-- `apps/server`: Axum API, trenutno samo `/health`, vezan na loopback.
-- `apps/dashboard`: jasno označen pogled »v pripravi«.
+- `crates/preflight-core`: shared diagnostic core.
+- `crates/preflight-cli`: the `preflight` command.
+- `apps/desktop`: React/TypeScript/Vite + Tauri 2, with an explicit `get_app_info` Rust command.
+- `apps/server`: Axum API, currently exposing only `/health`, bound to loopback.
+- `apps/dashboard`: a clearly labeled “in preparation” placeholder.
 
-Faza 00 pripravi repozitorij; faza 01 ogrodje; faza 02 tipizirane profile in CLI preverjanja; faza 03 offline namizni pregled rezultatov. Celotni načrt je v [ROADMAP.md](ROADMAP.md), dogovor v [AGENTS.md](AGENTS.md), začetna priprava v [START_HERE.md](START_HERE.md).
+Phase 00 sets up the repository; phase 01 adds the project scaffold; phase 02 adds typed profiles and CLI checks; phase 03 adds the offline desktop results interface. See [ROADMAP.md](ROADMAP.md) for the full plan, [AGENTS.md](AGENTS.md) for project conventions, and [START_HERE.md](START_HERE.md) for initial setup.
 
-Implementacija uporablja [uradni Tauri IPC](https://v2.tauri.app/develop/calling-rust/) in [Vite](https://vite.dev/guide/). JavaScript nima splošnih shell ali filesystem dovoljenj. Lock datoteki sta vključeni v Git.
+The implementation uses [official Tauri IPC](https://v2.tauri.app/develop/calling-rust/) and [Vite](https://vite.dev/guide/). JavaScript has no general shell or filesystem permissions. Both lockfiles are committed to Git.
 
-## CLI preverjanje
+## CLI checks
 
 ```sh
 cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --format text
 cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --format json
 ```
 
-Exit kode: 0 = vse obvezne zahteve izpolnjene, 1 = vsaj ena ni izpolnjena (tudi unknown), 2 = neveljaven/neberljiv profil ali napačna uporaba CLI. Neobvezna neustrezna različica vrne warning. `unknown` nikoli ne šteje kot uspešno preverjanje.
+Exit codes: 0 = all required checks pass; 1 = at least one required check does not pass (including unknown results); 2 = an invalid or unreadable profile, or incorrect CLI usage. An optional version mismatch produces a warning. `unknown` never counts as a successful check.
 
-Profil uporablja `schema_version: 1`, enolične ID-je in samo `type: runtime` z `tool: python|git|node|java`. Java pomeni JDK: preverita se java in javac. Omejitve sledijo Rust semver, npr. `>=22.0.0,<23.0.0`; golo `22.0.0` pomeni združljiv razpon, za točno različico uporabi `=22.0.0`. Stare Java 1.8.0_412 različice se normalizirajo na 8.0.412. Nestabilni/neprepoznani izpisi vrnejo unknown. YAML je omejen na 64 KiB, 32 preverjanj, globino 8; neznana polja, tagi, aliasi in več dokumentov niso dovoljeni.
+Profiles use `schema_version: 1`, unique IDs, and only `type: runtime` with `tool: python|git|node|java`. Java means JDK: both java and javac are checked. Version constraints follow Rust semver, for example `>=22.0.0,<23.0.0`; a bare `22.0.0` specifies a compatible range, while `=22.0.0` requires an exact version. Legacy Java versions such as 1.8.0_412 are normalized to 8.0.412. Unstable or unrecognized output produces an unknown result. YAML is limited to 64 KiB, 32 checks, and a nesting depth of 8; unknown fields, tags, aliases, and multiple documents are rejected.
 
-Vsak proces ima 5 sekund in največ 32 KiB skupnega izhoda; stdout/stderr se bereta sočasno in omejeno. Procesi se poženejo neposredno s statičnimi argumenti, brez shell-a, in se ob omejitvi ustavijo. Python: Windows python, nato py -3; Unix python3, nato python. JSON ne vsebuje surovega izhoda, poti do profila ali podatkov o računalniku. ID-ji preverjanj prihajajo iz profila: vanje ne zapisuj osebnih podatkov. Izpisov ne shranjuj v Git.
+Each process has a 5-second timeout and a maximum combined output of 32 KiB; stdout and stderr are read concurrently with bounded buffers. Processes are spawned directly with static arguments, without a shell, and stopped when a limit is reached. Python lookup: Windows tries python, then py -3; Unix tries python3, then python. JSON contains no raw output, profile paths, or machine information. Check IDs come from the profile: do not put personal information in them. Do not commit diagnostic output to Git.
 
-## Namizni pregled (faza 03)
+## Desktop overview (phase 03)
 
-`npm run dev:desktop` odpre namizno aplikacijo. Izberi Python delavnico, klikni »Zaženi preverjanje«, razširi posamezno vrstico za razlago in klikni »Ponovno preveri«. Obvezni unknown prepreči oznako pripravljenosti. Med izvajanjem sta izbira profila in ponovni zagon zaklenjena tudi v Rust sloju.
+`npm run dev:desktop` opens the desktop application. The interface is currently in Slovenian. Select the Python workshop, click “Zaženi preverjanje” (Run checks), expand a row for an explanation, and click “Ponovno preveri” (Check again). A required unknown result prevents the environment from being marked ready. Profile selection and repeated execution are locked while checks run, including in the Rust layer.
 
-Pregleda Zasebnost in Nastavitve pojasnita lokalno obdelavo in omogočata sistemsko/svetlo/temno temo. Tipkovnica: Tab za premik, Enter/Space za gumbe in podrobnosti. Obstajajo vidni fokus, skip link in živi povzetek. Rezultati se ohranijo samo v pomnilniku; shrani se le izbira teme. Aplikacija neposredno kliče preflight-core, brez CLI podprocesa ali klicev API strežnika.
+The Privacy and Settings views explain local processing and offer system, light, and dark themes. Keyboard navigation uses Tab to move and Enter/Space to activate buttons and details. The interface includes visible focus indicators, a skip link, and a live results summary. Results remain in memory; only the theme preference is saved. The application calls preflight-core directly, without a CLI subprocess or API server requests.
 
-V tej fazi je na voljo en vgrajen profil. Uvoz profilov, dodatna diagnostika in izvoz so predmet faze 04. Učiteljsko deljenje še ni na voljo.
+This phase includes one built-in profile. Profile import, additional diagnostics, and export are planned for phase 04. Teacher sharing is not available yet.
