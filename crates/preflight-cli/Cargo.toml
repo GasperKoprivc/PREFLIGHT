@@ -1,0 +1,10 @@
+[package]
+name = "preflight-cli"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+preflight-core.workspace = true
+clap = { version = "4", features = ["derive"] }
+[[bin]]
+name = "preflight"
+path = "src/main.rs"

@@ -1,0 +1,7 @@
+[package]
+name = "preflight-server"
+version.workspace = true
+edition.workspace = true
+[dependencies]
+axum = "0.8"
+tokio.workspace = true
