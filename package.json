@@ -1,0 +1,22 @@
+{
+  "name": "preflight",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/desktop",
+    "apps/dashboard"
+  ],
+  "scripts": {
+    "dev": "npm run dev:desktop",
+    "dev:desktop": "npm run tauri --workspace @preflight/desktop -- dev",
+    "dev:dashboard": "npm run dev --workspace @preflight/dashboard",
+    "dev:server": "cargo run -p preflight-server",
+    "build": "npm run build --workspaces && cargo build --workspace",
+    "build:desktop": "npm run tauri --workspace @preflight/desktop -- build --no-bundle",
+    "lint": "npm run lint --workspaces && cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
+    "test": "cargo test --workspace && npm run test --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  }
+}

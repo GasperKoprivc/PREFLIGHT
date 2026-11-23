@@ -1,0 +1,10 @@
+{
+  "identifier": "default",
+  "description": "Minimalno lokalno okno brez shell in filesystem vtičnikov.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default"
+  ]
+}

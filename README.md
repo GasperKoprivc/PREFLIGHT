@@ -1,18 +1,40 @@
-"# PREFLIGHT" 
+# Preflight
 
-Preflight je načrtovana namizna aplikacija in CLI za preverjanje razvojnega okolja pred delavnico. Lokalna diagnostika bo delovala brez računa; deljenje minimalnih rezultatov z učiteljem bo prostovoljno.
+Preflight pred delavnico lokalno preveri razvojno okolje. Namizna aplikacija in CLI uporabljata isto Rust jedro. Rezultati ostanejo na računalniku; učiteljske sobe in deljenje so načrtovani za poznejše faze.
 
-## Načrt
+## Razvoj
 
-- Faza 00: Git/GitHub repozitorij in projektna dokumentacija.
-- Faza 01: Rust in npm monorepo, Tauri namizna aplikacija, Axum API in spletni dashboard.
-- Faza 02: validirani YAML profili, preverjanje Python/Git/Node/Java in CLI s tekstovnim ter JSON izpisom.
-- Nadaljevanje: namizni pregled rezultatov, dodatna preverjanja, učiteljske sobe in vodeni popravki.
+Zahteve: Node.js 24+, npm, stabilni Rust in [predpogoji Tauri 2](https://v2.tauri.app/start/prerequisites/). Windows potrebuje MSVC C++ Build Tools in WebView2; macOS Xcode Command Line Tools; Linux WebKitGTK 4.1 in knjižnice iz CI workflowa. Orodji cargo in npm morata biti na PATH. V PowerShell lahko ob omejitvi izvajanja skript uporabiš `npm.cmd`.
 
-Podrobnosti so v [ROADMAP.md](ROADMAP.md), projektni dogovor v [AGENTS.md](AGENTS.md), priprava okolja pa v [START_HERE.md](START_HERE.md).
+Iz korena repozitorija:
 
-## Trenutno stanje
+```sh
+npm ci
+npm run dev:desktop
+npm run dev:dashboard
+npm run dev:server
+cargo run -p preflight-cli -- --help
+```
 
-Projekt vsebuje začetno dokumentacijo; aplikacija še ni implementirana. Ukazi za dev/build/lint/test bodo dodani z ogrodjem v fazi 01.
+Vsak dev ukaz zaženi v svojem terminalu. Dashboard je na http://127.0.0.1:1421, API na http://127.0.0.1:3001/health (vrne `ok`). Desktop Vite strežnik uporablja vrata 1420; Rust ukazi delujejo samo v Tauri oknu.
 
-Pred razvojem preveri Git, GitHub CLI, Rust (na Windows MSVC), Node.js in predpogoje Tauri 2 po START_HERE.md. Cargo.lock in package-lock.json bosta vključena v Git zaradi ponovljivih gradenj.
+```sh
+npm run build
+npm run lint
+npm test
+npm run build:desktop
+```
+
+`build` zgradi oba frontenda in celotni Cargo workspace. `build:desktop` ustvari produkcijsko namizno izvršljivo datoteko brez namestitvenega paketa. `lint` preveri ESLint, TypeScript, Rust fmt in Clippy. CI preveri tri OS. Namestitveni paketi in podpisovanje pridejo pozneje.
+
+## Moduli in načrt
+
+- `crates/preflight-core`: skupno jedro.
+- `crates/preflight-cli`: ukaz `preflight`.
+- `apps/desktop`: React/TypeScript/Vite + Tauri 2; eksplicitni Rust command `get_app_info`.
+- `apps/server`: Axum API, trenutno samo `/health`, vezan na loopback.
+- `apps/dashboard`: jasno označen pogled »v pripravi«.
+
+Faza 00 pripravi repozitorij; faza 01 ogrodje; faza 02 tipizirane profile in CLI preverjanja; faza 03 offline namizni pregled rezultatov. Celotni načrt je v [ROADMAP.md](ROADMAP.md), dogovor v [AGENTS.md](AGENTS.md), začetna priprava v [START_HERE.md](START_HERE.md).
+
+Implementacija uporablja [uradni Tauri IPC](https://v2.tauri.app/develop/calling-rust/) in [Vite](https://vite.dev/guide/). JavaScript nima splošnih shell ali filesystem dovoljenj. Lock datoteki sta vključeni v Git.

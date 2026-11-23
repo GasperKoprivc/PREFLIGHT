@@ -1,0 +1,1 @@
+export default function App(){return <main><small>PREFLIGHT / ZA UČITELJE</small><h1>Nadzorna plošča je v pripravi.</h1><p>Učiteljske sobe in prostovoljno deljenje rezultatov bodo na voljo v naslednjih fazah.</p></main>}
