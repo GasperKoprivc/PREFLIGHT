@@ -86,22 +86,54 @@ async fn run_checks(
     profile_id: String,
     profile_yaml: Option<String>,
     allow_network: Option<bool>,
+    check_id: Option<String>,
     state: tauri::State<'_, AppState>,
 ) -> Result<Report, CommandError> {
     let _guard = state.gate.try_lock().map_err(|_| CommandError {
         message_sl: "Preverjanje že poteka. Počakaj na zaključek.",
     })?;
     let profile = resolve_profile(&profile_id, profile_yaml)?;
+    let canonical = profile.to_yaml()?;
+    let previous = state.last.lock().await.clone();
+    let previous_profile = state.last_profile.lock().await.clone();
+    if check_id.is_some()
+        && (previous.is_none() || previous_profile.as_deref() != Some(canonical.as_str()))
+    {
+        return Err(CommandError {
+            message_sl: "Najprej preveri celoten izbrani profil.",
+        });
+    }
     *state.last.lock().await = None;
     *state.last_profile.lock().await = None;
-    let report = check_profile_with(
-        &profile,
-        &SystemRunner,
-        Platform::current(),
-        &SystemHost,
-        allow_network.unwrap_or(false),
-    )
-    .await;
+    let report = if let Some(id) = check_id {
+        let updated = preflight_core::engine::check_selected(
+            &profile,
+            &id,
+            &SystemRunner,
+            Platform::current(),
+            &SystemHost,
+            allow_network.unwrap_or(false),
+        )
+        .await?;
+        let old = previous.ok_or(CommandError {
+            message_sl: "Najprej preveri celoten profil.",
+        })?;
+        Report::new(
+            old.results
+                .into_iter()
+                .map(|r| if r.check_id == id { updated.clone() } else { r })
+                .collect(),
+        )
+    } else {
+        check_profile_with(
+            &profile,
+            &SystemRunner,
+            Platform::current(),
+            &SystemHost,
+            allow_network.unwrap_or(false),
+        )
+        .await
+    };
     *state.last.lock().await = Some(report.clone());
     *state.last_profile.lock().await = Some(profile.to_yaml()?);
     Ok(report)

@@ -33,3 +33,7 @@ A real HTTP smoke test on a loopback listener with an in-memory database success
 # Phase 06 verification
 
 51 Rust tests and 14 React tests passed, alongside full workspace build, fmt/Clippy and TS/ESLint. New tests cover endpoint restrictions, minimal share payloads, opt-in UI, deletion failure/retry, teacher recovery, two participants and filtering. Browser smoke test: created a real room through the dashboard, joined two simulated participants through HTTP, uploaded results for only one, and confirmed the other stayed unshared. Browser refresh retained teacher access. Native Tauri sharing was built and component-tested, but not clicked end-to-end in a native window. GitHub Actions are not awaited.
+
+# Phase 07 verification
+
+53 Rust tests and 20 React tests passed, together with Rust fmt/Clippy, TS/ESLint and the complete workspace build. Tests cover single-check execution/rejection of arbitrary IDs, reason/OS guide mapping, static extension command allowlists, command safety, clipboard copying, official links and the selected-check IPC request. No software was installed by guide tests. Windows is the development OS; macOS/Linux instructions are documented manual procedures, not physically verified installations. GitHub Actions are not awaited.

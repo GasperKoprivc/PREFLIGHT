@@ -10,6 +10,7 @@ import {
   checkIcon,
 } from "./model";
 
+import GuidedFix from "./GuidedFix";
 import Classroom from "./Classroom";
 import ProfileEditor from "./ProfileEditor";
 type Page = "checks" | "privacy" | "settings" | "profiles" | "room";
@@ -50,6 +51,7 @@ export default function App() {
   const [lastRun, setLastRun] = useState("");
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [version, setVersion] = useState("");
+  const [platform, setPlatform] = useState("other");
   const [customYaml, setCustomYaml] = useState<Record<string, string>>({});
   const [allowNetwork, setAllowNetwork] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -81,9 +83,12 @@ export default function App() {
           setLoading(false);
         }
       });
-    invoke<{ name: string; version: string }>("get_app_info")
+    invoke<{ name: string; version: string; platform?: string }>("get_app_info")
       .then((info) => {
-        if (active) setVersion(info.version);
+        if (active) {
+          setVersion(info.version);
+          setPlatform(info.platform ?? "other");
+        }
       })
       .catch(() => {});
     return () => {
@@ -94,7 +99,7 @@ export default function App() {
     if (report) resultHeading.current?.focus();
   }, [report]);
 
-  async function run() {
+  async function run(checkId?: string) {
     if (!profile || inFlight.current) return;
     inFlight.current = true;
     setRunning(true);
@@ -107,6 +112,7 @@ export default function App() {
         profileId: profile.id,
         profileYaml: customYaml[profile.id] ?? null,
         allowNetwork,
+        ...(checkId ? { checkId } : {}),
       });
       setReport(result);
       setLastRun(
@@ -420,6 +426,15 @@ export default function App() {
                               ? result.suggestion_sl
                               : `Preverjanje: ${checkName(check)}. Zahteva: ${checkRequirement(check)}.`}
                           </p>
+                          {result && (
+                            <GuidedFix
+                              check={check}
+                              result={result}
+                              platform={platform}
+                              disabled={running}
+                              onRecheck={() => void run(check.id)}
+                            />
+                          )}
                           {result?.reason_code === "timeout" && (
                             <p>
                               Časovna omejitev ne pomeni, da program manjka.

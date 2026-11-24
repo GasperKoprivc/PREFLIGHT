@@ -8,11 +8,13 @@ use serde::Serialize;
 #[derive(Serialize)]
 pub struct AppInfo {
     pub name: &'static str,
+    pub platform: &'static str,
     pub version: &'static str,
 }
 pub fn app_info() -> AppInfo {
     AppInfo {
         name: "Preflight",
+        platform: std::env::consts::OS,
         version: env!("CARGO_PKG_VERSION"),
     }
 }

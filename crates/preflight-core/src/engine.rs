@@ -191,3 +191,23 @@ pub(crate) fn result(
         suggestion_sl,
     }
 }
+
+/// Recheck one ID from an already validated profile; no executable data is accepted.
+pub async fn check_selected(
+    profile: &Profile,
+    id: &str,
+    runner: &impl ProcessRunner,
+    platform: Platform,
+    host: &impl crate::host::HostChecks,
+    allow_network: bool,
+) -> Result<CheckResult, Error> {
+    let check = profile
+        .checks()
+        .iter()
+        .find(|c| c.id == id)
+        .ok_or_else(|| Error::new(ReasonCode::InvalidProfile))?;
+    Ok(match check.check_type {
+        CheckType::Runtime => check_one(check, runner, platform).await,
+        _ => crate::host::check_extra(check, runner, host, allow_network).await,
+    })
+}

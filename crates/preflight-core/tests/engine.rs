@@ -221,3 +221,38 @@ async fn version_metadata_cannot_leak() {
     assert_eq!(r.results[0].installed_version.as_deref(), Some("22.1.0"));
     assert!(!serde_json::to_string(&r).unwrap().contains("secret-user"));
 }
+
+#[tokio::test]
+async fn single_check_executes_only_selected_runtime() {
+    let p = Profile::parse(include_str!("fixtures/runtime.yaml")).unwrap();
+    let f = Fake::new(vec![(Invocation::Git, out("git version 2.53.0", ""))]);
+    let result = preflight_core::engine::check_selected(
+        &p,
+        "git",
+        &f,
+        Platform::Windows,
+        &preflight_core::host::SystemHost,
+        false,
+    )
+    .await
+    .unwrap();
+    assert_eq!(result.check_id, "git");
+    assert_eq!(result.status, Status::Pass);
+    f.done();
+}
+#[tokio::test]
+async fn single_check_rejects_unregistered_ids_before_spawning() {
+    let p = profile("git", true);
+    let f = Fake::new(vec![]);
+    assert!(preflight_core::engine::check_selected(
+        &p,
+        "cmd /c whoami",
+        &f,
+        Platform::Windows,
+        &preflight_core::host::SystemHost,
+        false
+    )
+    .await
+    .is_err());
+    f.done();
+}
