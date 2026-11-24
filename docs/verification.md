@@ -29,3 +29,7 @@ Windows: 42 Rust tests, 9 component tests, Rust fmt/Clippy, TypeScript/ESLint an
 Windows: 49 Rust tests total (including 7 API integration tests), 9 UI component tests, TypeScript/ESLint, Rust fmt and Clippy passed. The complete workspace build was run. API tests use real SQLite migrations in an isolated in-memory database and cover authorization, two sessions, cross-room access, opt-in validation, invalid results, expiry, deletion, payload/rate limits and CORS.
 
 A real HTTP smoke test on a loopback listener with an in-memory database successfully created a room, joined a participant, uploaded consented results, read teacher aggregates and deleted the room. Tokens were held only in local variables and not printed or saved. Production hosting and interactive native profile save dialogs remain unverified. GitHub CI is not awaited at the user's request.
+
+# Phase 06 verification
+
+51 Rust tests and 14 React tests passed, alongside full workspace build, fmt/Clippy and TS/ESLint. New tests cover endpoint restrictions, minimal share payloads, opt-in UI, deletion failure/retry, teacher recovery, two participants and filtering. Browser smoke test: created a real room through the dashboard, joined two simulated participants through HTTP, uploaded results for only one, and confirmed the other stayed unshared. Browser refresh retained teacher access. Native Tauri sharing was built and component-tested, but not clicked end-to-end in a native window. GitHub Actions are not awaited.

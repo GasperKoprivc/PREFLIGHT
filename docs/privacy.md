@@ -9,3 +9,9 @@ PUT rezultatov zahteva consent: true. V fazi 05 še ni povezave z namizno aplika
 Privzeta hramba je največ 24 ur, nastavljiva na 60–86400 sekund. Dostop po poteku ni dovoljen; fizični SQL DELETE se izvede ob API dostopu ali vsako minuto, ob ponovnem zagonu pa takoj. Izbris iz SQLite ne jamči forenzičnega izbrisa iz prostih strani diska, varnostnih kopij ali posnetkov. Upravljavec mora omejiti dostop do diska in urediti hrambo kopij.
 
 Aplikacija nima dnevnika IP naslovov, vsebine zahtev ali žetonov. Reverse proxy in ponudnik gostovanja lahko kljub temu beležita IP-je ter URL-je: izključi query stringe, Authorization in vsebino zahtev iz logov, določi kratko hrambo in ustrezno obvestilo uporabnikom. HTTPS in strežniško gostovanje lahko vključujeta osebne podatke. Projekt sam po sebi ni zagotovilo skladnosti z GDPR; šola mora določiti pravno podlago, odgovornosti, gostovanje in hrambo.
+
+## Odjemalci faze 06
+
+Dashboard shrani učiteljski žeton v sessionStorage trenutnega zavihka; osvežitev ga ohrani, zaprtje seje pa ga lahko izgubi. Uporabnik lahko skrivnost varno shrani in jo vnese v obrazec za obnovo. Žeton nikoli ni del povezave za udeležence. Dostop do istega brskalniškega izvora zato varuj pred XSS in ne vključuj zunanjih analitičnih skript.
+
+Desktop udeleženčev žeton ohrani samo v Rust pomnilniku. Vsaka posodobitev je ročna in zahteva novo privolitev. Izbris ob omrežni napaki ohrani lokalno sejo za ponovni poskus; ob zaprtju aplikacije brez izbrisa ostane oddana seja do poteka sobe. Prikazani so le ID, status, normalizirana različica in reason_code; vnos osebnih podatkov v profile ni primeren.

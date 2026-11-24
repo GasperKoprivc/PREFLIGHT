@@ -101,3 +101,19 @@ See [API endpoints and payloads](docs/api.md), [privacy and retention](docs/priv
 cargo test -p preflight-server
 cargo run -p preflight-server
 ```
+
+## Teacher dashboard and voluntary sharing (phase 06)
+
+Run the API, dashboard, and desktop in separate terminals:
+
+```sh
+npm run dev:server
+npm run dev:dashboard
+npm run dev:desktop
+```
+
+Open http://127.0.0.1:1421, paste a valid YAML profile and create a room. The development dashboard proxies `/api` to the API on port 3001; production must serve `/api` from the same origin. The teacher token is masked and stored only in `sessionStorage` for the current tab so refresh preserves control. Save it securely before closing the tab; the recovery form accepts it without putting it in a URL. Shared invite links contain only the public room code.
+
+In the desktop **Soba** view, enter the API origin (development: `http://127.0.0.1:3001`) and room code. Download/review the profile, run local checks in **Pregled okolja**, return to **Soba**, inspect the minimized JSON, explicitly consent and click **Deli rezultate**. Each update requires a new consent and click. The Rust layer checks that the latest report belongs to the unchanged room profile. Tokens remain in Rust memory; the frontend does not receive them. **Izklopi deljenje in izbriši sejo** deletes the server session; on a network failure it keeps the token for retry. Delete before closing the app, otherwise the shared session remains until expiry and the in-memory token is lost.
+
+The dashboard polls every five seconds, shows the last successful refresh, problematic-check filters, empty/unshared states and expiry/authentication errors. It stops polling on expiry/unauthorized access. Participant reports are not trusted attestation. The desktop accepts HTTPS API origins, plus HTTP loopback for development, with no redirects and bounded responses. Local diagnostics remain independent of classroom services.

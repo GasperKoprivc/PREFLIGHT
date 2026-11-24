@@ -3240,12 +3240,14 @@ name = "preflight-desktop"
 version = "0.1.0"
 dependencies = [
  "preflight-core",
+ "reqwest",
  "rfd",
  "serde",
  "serde_json",
  "tauri",
  "tauri-build",
  "tokio",
+ "url",
 ]
 
 [[package]]
