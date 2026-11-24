@@ -19,3 +19,7 @@ Pravi profil python-workshop.yaml na razvojnem Windows računalniku vrne dva pas
 28 Rust testov in 7 React komponentnih testov uspešnih. Preverjeni so IPC klic, prikaz rezultatov in ponovni zagon, zaklep med preverjanjem, unknown/timeout, varna napaka, prazni profili ter tema/zasebnost. ESLint/TypeScript, Rust fmt/Clippy in celoten npm/Cargo build so uspešni.
 
 Tauri dev se zgradi in zažene. Ponovni vizualni pregled faze 03 je omejen: orodje za nadzor oken javlja minimizirano okno oziroma zaznan uporabnikov vnos in ne omogoči zanesljivega zajema. Funkcionalni preizkus začetnega Tauri okna v fazi 01 je uspel; dejanskega klika končne diagnostike ne označujemo kot ročno potrjenega. Dashboard je bil pregledan tudi v brskalniku, z vidnim napisom »v pripravi«.
+
+# Phase 04 verification
+
+Windows: 42 Rust tests, 9 component tests, Rust fmt/Clippy, TypeScript/ESLint and both frontend builds passed. The real Python workshop profile was run locally in offline mode. Fake host/network tests cover disk thresholds, unavailable VS Code, redirects, mixed DNS, DNS rebinding, private/metadata IPs and profile roundtrips. Native file dialogs require an interactive desktop smoke test; no claim of a completed manual export is made. CI is not awaited at the user's request.

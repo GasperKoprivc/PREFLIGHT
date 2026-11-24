@@ -7,5 +7,7 @@ tauri = { version = "2", features = [] }
 preflight-core.workspace = true
 serde.workspace = true
 tokio.workspace = true
+serde_json.workspace = true
+rfd = "0.18"
 [build-dependencies]
 tauri-build = { version = "2", features = [] }

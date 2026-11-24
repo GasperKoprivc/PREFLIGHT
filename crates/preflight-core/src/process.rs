@@ -12,6 +12,7 @@ pub enum Invocation {
     Node,
     Java,
     Javac,
+    CodeExtensions,
 }
 impl Invocation {
     fn command(self) -> (&'static str, &'static [&'static str]) {
@@ -23,6 +24,7 @@ impl Invocation {
             Self::Node => ("node", &["--version"]),
             Self::Java => ("java", &["-version"]),
             Self::Javac => ("javac", &["-version"]),
+            Self::CodeExtensions => ("code", &["--list-extensions"]),
         }
     }
 }
@@ -47,6 +49,10 @@ pub trait ProcessRunner: Sync {
 pub struct SystemRunner;
 impl ProcessRunner for SystemRunner {
     async fn run(&self, invocation: Invocation) -> Result<Output, ProcessError> {
+        #[cfg(windows)]
+        if invocation == Invocation::CodeExtensions {
+            return execute(windows_code()?, Duration::from_secs(5), 32 * 1024).await;
+        }
         if std::env::var_os("PATH").is_none_or(|p| p.is_empty()) {
             return Err(ProcessError::NotFound);
         }
@@ -55,7 +61,17 @@ impl ProcessRunner for SystemRunner {
         command.args(args);
         #[cfg(windows)]
         command.creation_flags(0x08000000); // CREATE_NO_WINDOW
-        execute(command, Duration::from_secs(5), 32 * 1024).await
+        let result = execute(command, Duration::from_secs(5), 32 * 1024).await;
+        #[cfg(target_os = "macos")]
+        if invocation == Invocation::CodeExtensions && matches!(result, Err(ProcessError::NotFound))
+        {
+            let mut fallback = Command::new(
+                "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code",
+            );
+            fallback.arg("--list-extensions");
+            return execute(fallback, Duration::from_secs(5), 32 * 1024).await;
+        }
+        result
     }
 }
 async fn read_bounded(
@@ -117,6 +133,47 @@ async fn execute(
         let _ = child.wait().await;
     }
     result
+}
+
+#[cfg(windows)]
+fn windows_code() -> Result<Command, ProcessError> {
+    use std::path::PathBuf;
+    let mut roots = Vec::new();
+    for key in ["LOCALAPPDATA", "ProgramFiles", "ProgramFiles(x86)"] {
+        if let Some(base) = std::env::var_os(key) {
+            let base = PathBuf::from(base);
+            roots.push(if key == "LOCALAPPDATA" {
+                base.join("Programs/Microsoft VS Code")
+            } else {
+                base.join("Microsoft VS Code")
+            });
+        }
+    }
+    if let Some(path) = std::env::var_os("PATH") {
+        for dir in std::env::split_paths(&path) {
+            if dir
+                .file_name()
+                .is_some_and(|n| n.eq_ignore_ascii_case("bin"))
+            {
+                if let Some(parent) = dir.parent() {
+                    roots.push(parent.to_path_buf())
+                }
+            }
+        }
+    }
+    for root in roots {
+        let exe = root.join("Code.exe");
+        let cli = root.join("resources/app/out/cli.js");
+        if exe.is_file() && cli.is_file() {
+            let mut cmd = Command::new(exe);
+            cmd.arg(cli)
+                .arg("--list-extensions")
+                .env("ELECTRON_RUN_AS_NODE", "1")
+                .creation_flags(0x08000000);
+            return Ok(cmd);
+        }
+    }
+    Err(ProcessError::NotFound)
 }
 #[cfg(test)]
 mod tests {

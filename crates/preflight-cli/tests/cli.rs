@@ -16,7 +16,7 @@ fn missing_path_produces_exit_one_and_safe_json() {
             "--profile",
             concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/../../profiles/python-workshop.yaml"
+                "/../preflight-core/tests/fixtures/runtime.yaml"
             ),
             "--format",
             "json",
@@ -73,7 +73,7 @@ fn text_is_slovenian() {
             "--profile",
             concat!(
                 env!("CARGO_MANIFEST_DIR"),
-                "/../../profiles/python-workshop.yaml"
+                "/../preflight-core/tests/fixtures/runtime.yaml"
             ),
             "--format",
             "text",

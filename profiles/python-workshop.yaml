@@ -17,3 +17,15 @@ checks:
     tool: node
     version: ">=22.0.0,<23.0.0"
     required: false
+  - id: vscode-python
+    type: vscode_extension
+    extension: ms-python.python
+    required: true
+  - id: disk
+    type: disk_space
+    min_free_gb: 5
+    required: true
+  - id: pypi
+    type: https
+    url: https://pypi.org
+    required: false
