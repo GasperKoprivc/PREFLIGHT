@@ -10,8 +10,9 @@ import {
   checkIcon,
 } from "./model";
 
+import Classroom from "./Classroom";
 import ProfileEditor from "./ProfileEditor";
-type Page = "checks" | "privacy" | "settings" | "profiles";
+type Page = "checks" | "privacy" | "settings" | "profiles" | "room";
 type Theme = "system" | "light" | "dark";
 const symbols: Record<Status, string> = {
   pass: "✓",
@@ -178,6 +179,12 @@ export default function App() {
             onClick={() => setPage("profiles")}
           >
             <span aria-hidden="true">≡</span> Profili
+          </button>
+          <button
+            className={page === "room" ? "nav-item active" : "nav-item"}
+            onClick={() => setPage("room")}
+          >
+            <span aria-hidden="true">◇</span> Soba
           </button>
         </nav>
         <div className="sidebar-note">
@@ -474,6 +481,23 @@ export default function App() {
             }}
           />
         )}
+        <div hidden={page !== "room"}>
+          <Classroom
+            report={report}
+            running={running}
+            onApply={(p, y) => {
+              setProfiles((items) => [
+                ...items.filter((x) => x.id !== p.id),
+                p,
+              ]);
+              setCustomYaml((items) => ({ ...items, [p.id]: y }));
+              setSelected(p.id);
+              setReport(null);
+              setLastRun("");
+              setAllowNetwork(false);
+            }}
+          />
+        </div>
         {page === "privacy" && (
           <section className="info-page">
             <p className="eyebrow">TI ODLOČAŠ O SVOJIH PODATKIH</p>
@@ -482,8 +506,9 @@ export default function App() {
             <div className="info-card">
               <h2>Deljenje je izključeno.</h2>
               <p>
-                Ta različica ne pošilja rezultatov učitelju ali strežniku.
-                Učiteljske sobe in prostovoljno deljenje še niso na voljo.
+                Lokalni pregled ne pošilja rezultatov učitelju ali strežniku.
+                Deljenje je na voljo v pogledu Soba samo po tvoji izrecni
+                privolitvi.
               </p>
               <h2>Spletni testi samo po izbiri.</h2>
               <p>

@@ -1,4 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+mod classroom;
+use classroom::{room_leave, room_load, room_share};
 use preflight_core::{
     engine::{check_profile_with, Platform},
     host::SystemHost,
@@ -27,6 +29,8 @@ impl From<preflight_core::Error> for CommandError {
 struct AppState {
     gate: Mutex<()>,
     last: Mutex<Option<Report>>,
+    last_profile: Mutex<Option<String>>,
+    room: Mutex<Option<classroom::Room>>,
 }
 fn profiles() -> Result<Vec<Profile>, CommandError> {
     BUNDLED
@@ -89,6 +93,7 @@ async fn run_checks(
     })?;
     let profile = resolve_profile(&profile_id, profile_yaml)?;
     *state.last.lock().await = None;
+    *state.last_profile.lock().await = None;
     let report = check_profile_with(
         &profile,
         &SystemRunner,
@@ -98,6 +103,7 @@ async fn run_checks(
     )
     .await;
     *state.last.lock().await = Some(report.clone());
+    *state.last_profile.lock().await = Some(profile.to_yaml()?);
     Ok(report)
 }
 async fn save(content: String, extension: &str, filename: &str) -> Result<bool, CommandError> {
@@ -180,7 +186,10 @@ fn main() {
             get_profile_yaml,
             run_checks,
             export_profile,
-            export_report
+            export_report,
+            room_load,
+            room_share,
+            room_leave
         ])
         .run(tauri::generate_context!())
         .expect("Namizne aplikacije ni bilo mogoče zagnati");

@@ -801,3 +801,4 @@ footer span:last-child {
     flex: 1 0 45%;
   }
 }
+.info-card input{display:block;width:100%;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:12px;margin:7px 0}.info-card input[type=checkbox]{display:inline;width:auto}.share-preview{white-space:pre-wrap;overflow-wrap:anywhere;max-height:320px;overflow:auto;background:var(--bg);padding:15px;border-radius:10px;font-size:12px}
