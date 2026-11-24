@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod classroom;
+mod fixes;
 use classroom::{room_leave, room_load, room_share};
+use fixes::{confirm_fix, prepare_fix};
 use preflight_core::{
     engine::{check_profile_with, Platform},
     host::SystemHost,
@@ -31,6 +33,8 @@ struct AppState {
     last: Mutex<Option<Report>>,
     last_profile: Mutex<Option<String>>,
     room: Mutex<Option<classroom::Room>>,
+    pending_fix: Mutex<Option<fixes::PendingFix>>,
+    install_uncertain: Mutex<bool>,
 }
 fn profiles() -> Result<Vec<Profile>, CommandError> {
     BUNDLED
@@ -93,6 +97,7 @@ async fn run_checks(
         message_sl: "Preverjanje že poteka. Počakaj na zaključek.",
     })?;
     let profile = resolve_profile(&profile_id, profile_yaml)?;
+    *state.pending_fix.lock().await = None;
     let canonical = profile.to_yaml()?;
     let previous = state.last.lock().await.clone();
     let previous_profile = state.last_profile.lock().await.clone();
@@ -221,7 +226,9 @@ fn main() {
             export_report,
             room_load,
             room_share,
-            room_leave
+            room_leave,
+            prepare_fix,
+            confirm_fix
         ])
         .run(tauri::generate_context!())
         .expect("Namizne aplikacije ni bilo mogoče zagnati");

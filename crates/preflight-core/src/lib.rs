@@ -20,4 +20,5 @@ pub fn app_info() -> AppInfo {
 }
 
 pub mod host;
+pub mod install;
 pub mod network;
