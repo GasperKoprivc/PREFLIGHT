@@ -61,6 +61,8 @@ test("shows unverified state then genuine IPC result and supports rerun", async 
   expect(screen.getByText("3.12.0")).toBeInTheDocument();
   expect(invokeMock).toHaveBeenCalledWith("run_checks", {
     profileId: "python-workshop",
+    profileYaml: null,
+    allowNetwork: false,
   });
   await user.click(screen.getByRole("button", { name: "Ponovno preveri" }));
   await waitFor(() =>

@@ -59,3 +59,34 @@ Each process has a 5-second timeout and a maximum combined output of 32 KiB; std
 The Privacy and Settings views explain local processing and offer system, light, and dark themes. Keyboard navigation uses Tab to move and Enter/Space to activate buttons and details. The interface includes visible focus indicators, a skip link, and a live results summary. Results remain in memory; only the theme preference is saved. The application calls preflight-core directly, without a CLI subprocess or API server requests.
 
 This phase includes one built-in profile. Profile import, additional diagnostics, and export are planned for phase 04. Teacher sharing is not available yet.
+
+## Profiles and extended checks (phase 04)
+
+Three examples are included in `profiles/`: Python, Java/JDK, and web development. The desktop **Profili** view opens a local YAML file, edits it, validates it through Rust, applies it for the current session, and exports it through a native save dialog. Export edited profiles before closing the app. **Izvozi JSON / Izvozi besedilo** saves the latest results locally.
+
+Additional allowed check types:
+
+```yaml
+- id: vscode-python
+  type: vscode_extension
+  extension: ms-python.python
+  required: true
+- id: disk
+  type: disk_space
+  min_free_gb: 5
+  required: true
+- id: pypi
+  type: https
+  url: https://pypi.org
+  required: false
+```
+
+Disk space is measured on the filesystem containing the current working directory; GB means 1,000,000,000 bytes. VS Code checks the default extension profile, using the CLI or a known installation fallback. An unavailable CLI returns unknown; other editors, portable installations and custom VS Code profiles may need manual verification.
+
+Desktop HTTPS checks are off by default. Enabling them contacts the listed servers, which can see your IP address, but does not send diagnostic results. CLI checks HTTPS entries unless `--offline` is supplied. HTTPS checks use HEAD without downloading response bodies, verified TLS, port 443, a 12-second overall timeout and at most three redirects. Every hop resolves and validates all addresses, then pins those addresses for the request; private, loopback, link-local, metadata and reserved ranges are blocked. Proxies are disabled. A server that rejects HEAD produces a warning rather than a false pass.
+
+```sh
+cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --format text --offline
+```
+
+Only profile-defined IDs and normalized versions appear in exported results; do not put personal data in profile IDs or names. Profiles cannot specify executable commands or script arguments.

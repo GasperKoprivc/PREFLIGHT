@@ -1,0 +1,26 @@
+schema_version: 1
+id: java-workshop
+name: "Java delavnica"
+checks:
+  - id: java
+    type: runtime
+    tool: java
+    version: ">=21.0.0,<26.0.0"
+    required: true
+  - id: git
+    type: runtime
+    tool: git
+    version: ">=2.40.0"
+    required: true
+  - id: vscode-java
+    type: vscode_extension
+    extension: redhat.java
+    required: false
+  - id: disk
+    type: disk_space
+    min_free_gb: 5
+    required: true
+  - id: maven
+    type: https
+    url: https://repo.maven.apache.org/maven2/
+    required: false

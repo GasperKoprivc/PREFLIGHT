@@ -1,0 +1,26 @@
+schema_version: 1
+id: web-workshop
+name: "Spletna delavnica"
+checks:
+  - id: node
+    type: runtime
+    tool: node
+    version: ">=22.0.0,<25.0.0"
+    required: true
+  - id: git
+    type: runtime
+    tool: git
+    version: ">=2.40.0"
+    required: true
+  - id: vscode-eslint
+    type: vscode_extension
+    extension: dbaeumer.vscode-eslint
+    required: false
+  - id: disk
+    type: disk_space
+    min_free_gb: 3
+    required: true
+  - id: npm
+    type: https
+    url: https://registry.npmjs.org
+    required: false

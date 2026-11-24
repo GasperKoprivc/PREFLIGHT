@@ -5,10 +5,13 @@ import {
   type Report,
   type Status,
   statusLabels,
-  toolNames,
+  checkName,
+  checkRequirement,
+  checkIcon,
 } from "./model";
 
-type Page = "checks" | "privacy" | "settings";
+import ProfileEditor from "./ProfileEditor";
+type Page = "checks" | "privacy" | "settings" | "profiles";
 type Theme = "system" | "light" | "dark";
 const symbols: Record<Status, string> = {
   pass: "✓",
@@ -46,6 +49,10 @@ export default function App() {
   const [lastRun, setLastRun] = useState("");
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [version, setVersion] = useState("");
+  const [customYaml, setCustomYaml] = useState<Record<string, string>>({});
+  const [allowNetwork, setAllowNetwork] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportNotice, setExportNotice] = useState("");
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const inFlight = useRef(false);
   const profile = profiles.find((p) => p.id === selected);
@@ -93,9 +100,12 @@ export default function App() {
     setError("");
     setReport(null);
     setLastRun("");
+    setExportNotice("");
     try {
       const result = await invoke<Report>("run_checks", {
         profileId: profile.id,
+        profileYaml: customYaml[profile.id] ?? null,
+        allowNetwork,
       });
       setReport(result);
       setLastRun(
@@ -109,6 +119,21 @@ export default function App() {
     } finally {
       inFlight.current = false;
       setRunning(false);
+    }
+  }
+
+  async function exportResults(format: "json" | "text") {
+    setExporting(true);
+    setExportNotice("");
+    try {
+      const saved = await invoke<boolean>("export_report", { format });
+      setExportNotice(
+        saved ? "Povzetek je shranjen lokalno." : "Shranjevanje je preklicano.",
+      );
+    } catch (e) {
+      setError(message(e));
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -146,6 +171,13 @@ export default function App() {
             onClick={() => setPage("settings")}
           >
             <span aria-hidden="true">☷</span> Nastavitve
+          </button>
+          <button
+            className={page === "profiles" ? "nav-item active" : "nav-item"}
+            aria-current={page === "profiles" ? "page" : undefined}
+            onClick={() => setPage("profiles")}
+          >
+            <span aria-hidden="true">≡</span> Profili
           </button>
         </nav>
         <div className="sidebar-note">
@@ -199,6 +231,8 @@ export default function App() {
                     setReport(null);
                     setError("");
                     setLastRun("");
+                    setAllowNetwork(false);
+                    setExportNotice("");
                   }}
                 >
                   <option value="">Izberi profil …</option>
@@ -210,7 +244,7 @@ export default function App() {
                 </select>
                 <span className="field-note">
                   {profile
-                    ? `${profile.checks.length} lokalna preverjanja · brez spreminjanja sistema`
+                    ? `${profile.checks.length} preverjanj · brez spreminjanja sistema`
                     : "Izberi zahteve za svoje razvojno okolje."}
                 </span>
               </div>
@@ -227,6 +261,29 @@ export default function App() {
                 <span aria-hidden="true">{running ? "◌" : "→"}</span>
               </button>
             </section>
+            {profile?.checks.some((c) => c.type === "https") && (
+              <div className="network-choice">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={allowNetwork}
+                    disabled={running}
+                    onChange={(e) => {
+                      setAllowNetwork(e.target.checked);
+                      setReport(null);
+                      setLastRun("");
+                      setExportNotice("");
+                    }}
+                  />{" "}
+                  Dovoli HTTPS preverjanja za ta profil
+                </label>
+                <p>
+                  Ob vklopu stopimo v stik z naslovi v profilu. Ciljni strežnik
+                  vidi tvoj IP naslov; rezultatov mu ne pošiljamo. Brez kljukice
+                  ostane preverjanje lokalno.
+                </p>
+              </div>
+            )}
             {error && (
               <div className="error" role="alert">
                 <strong>Preverjanje ni uspelo.</strong>
@@ -287,7 +344,7 @@ export default function App() {
                     </h2>
                     <p>
                       {running
-                        ? "Orodja preverjamo lokalno. Vsak ukaz ima časovno omejitev 5 sekund."
+                        ? "Vsak ukaz ima omejitev 5 sekund; HTTPS preverjanje največ 12 sekund."
                         : report
                           ? `${report.summary.pass} v redu · ${report.summary.fail} napak · ${report.summary.warning} opozoril · ${report.summary.unknown} neznanih`
                           : "Zaženi preverjanje in izvedi, kaj že deluje ter kaj je treba urediti."}
@@ -318,19 +375,13 @@ export default function App() {
                             className={`tool-icon ${check.tool}`}
                             aria-hidden="true"
                           >
-                            {check.tool === "python"
-                              ? "Py"
-                              : check.tool === "node"
-                                ? "JS"
-                                : check.tool === "git"
-                                  ? "Gt"
-                                  : "Jv"}
+                            {checkIcon(check)}
                           </span>
                           <span className="tool-description">
-                            <strong>{toolNames[check.tool]}</strong>
+                            <strong>{checkName(check)}</strong>
                             <span>
                               {check.required ? "Obvezno" : "Neobvezno"} ·
-                              zahteva {check.version}
+                              zahteva {checkRequirement(check)}
                             </span>
                           </span>
                           <span className="installed">
@@ -360,7 +411,7 @@ export default function App() {
                           <p>
                             {result
                               ? result.suggestion_sl
-                              : `Preverimo, ali je ${toolNames[check.tool]} dosegljiv in njegova različica ustreza zahtevi ${check.version}.`}
+                              : `Preverjanje: ${checkName(check)}. Zahteva: ${checkRequirement(check)}.`}
                           </p>
                           {result?.reason_code === "timeout" && (
                             <p>
@@ -373,6 +424,24 @@ export default function App() {
                     );
                   })}
                 </div>
+                {report && (
+                  <div className="export-controls">
+                    <span>Lokalni povzetek</span>
+                    <button
+                      disabled={exporting}
+                      onClick={() => void exportResults("json")}
+                    >
+                      Izvozi JSON
+                    </button>
+                    <button
+                      disabled={exporting}
+                      onClick={() => void exportResults("text")}
+                    >
+                      Izvozi besedilo
+                    </button>
+                  </div>
+                )}
+                {exportNotice && <p role="status">{exportNotice}</p>}
                 <div className="privacy-note">
                   <span aria-hidden="true">◇</span>
                   <p>
@@ -385,6 +454,26 @@ export default function App() {
             )}
           </>
         )}
+        {page === "profiles" && (
+          <ProfileEditor
+            profile={profile}
+            yaml={profile ? customYaml[profile.id] : undefined}
+            disabled={running}
+            onApply={(p, yaml) => {
+              setProfiles((items) => [
+                ...items.filter((x) => x.id !== p.id),
+                p,
+              ]);
+              setCustomYaml((items) => ({ ...items, [p.id]: yaml }));
+              setSelected(p.id);
+              setReport(null);
+              setLastRun("");
+              setError("");
+              setAllowNetwork(false);
+              setExportNotice("");
+            }}
+          />
+        )}
         {page === "privacy" && (
           <section className="info-page">
             <p className="eyebrow">TI ODLOČAŠ O SVOJIH PODATKIH</p>
@@ -396,11 +485,19 @@ export default function App() {
                 Ta različica ne pošilja rezultatov učitelju ali strežniku.
                 Učiteljske sobe in prostovoljno deljenje še niso na voljo.
               </p>
+              <h2>Spletni testi samo po izbiri.</h2>
+              <p>
+                Če dovoliš HTTPS preverjanja, se povežemo z javnimi naslovi iz
+                profila. Ti strežniki vidijo tvoj IP naslov. Samih rezultatov ne
+                pošiljamo. Profili in izvozi lahko vsebujejo tvoje vnesene
+                ID-je; vanje ne zapisuj osebnih podatkov.
+              </p>
               <h2>Kaj preverjamo?</h2>
               <p>
-                Samo prisotnost in različice orodij iz izbranega profila. Surovi
-                izhodi se ne prikazujejo ali shranjujejo v rezultate. Ne zbiramo
-                uporabniških imen, strojnih ID-jev ali osebnih datotek.
+                Prisotnost in različice orodij, zahtevane razširitve, prosti
+                prostor ter izbrane HTTPS povezave. Surovi izhodi se ne
+                prikazujejo ali shranjujejo v rezultate. Ne zbiramo uporabniških
+                imen, strojnih ID-jev ali osebnih datotek.
               </p>
               <h2>Brez sprememb sistema.</h2>
               <p>

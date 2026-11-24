@@ -130,7 +130,7 @@ async fn optional_missing_is_warning() {
 }
 #[tokio::test]
 async fn version_constraint_and_privacy() {
-    let yaml = include_str!("../../../profiles/python-workshop.yaml");
+    let yaml = include_str!("fixtures/runtime.yaml");
     let f = Fake::new(vec![
         (
             Invocation::Python3,
@@ -180,7 +180,7 @@ async fn unknown_version_never_passes() {
 }
 #[test]
 fn rejects_invalid_profiles() {
-    let valid = include_str!("../../../profiles/python-workshop.yaml");
+    let valid = include_str!("fixtures/runtime.yaml");
     for yaml in [
         valid.replace("schema_version: 1", "schema_version: 2"),
         valid.replace("type: runtime", "type: shell"),
@@ -205,7 +205,7 @@ fn rejects_duplicate_yaml_keys() {
 
 #[test]
 fn rejects_tags_and_aliases() {
-    let valid = include_str!("../../../profiles/python-workshop.yaml");
+    let valid = include_str!("fixtures/runtime.yaml");
     for yaml in [
         valid.replace("name: \"Python delavnica\"", "name: !include /secret"),
         valid.replace("id: python-workshop", "id: &id python-workshop"),

@@ -16,3 +16,6 @@ pub fn app_info() -> AppInfo {
         version: env!("CARGO_PKG_VERSION"),
     }
 }
+
+pub mod host;
+pub mod network;

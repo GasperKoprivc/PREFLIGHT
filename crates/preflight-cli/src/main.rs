@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand, ValueEnum};
 use preflight_core::{
-    engine::{check_profile, Platform},
+    engine::{check_profile_with, Platform},
     process::SystemRunner,
     Error, Profile, ReasonCode, Status,
 };
@@ -23,6 +23,9 @@ enum Action {
         profile: PathBuf,
         #[arg(long, value_enum, default_value = "text")]
         format: Format,
+        /// Preskoči vsa spletna preverjanja
+        #[arg(long)]
+        offline: bool,
     },
 }
 #[derive(Clone, Copy, ValueEnum)]
@@ -41,7 +44,12 @@ fn read_profile(path: PathBuf) -> Result<Profile, Error> {
 #[tokio::main]
 async fn main() -> ExitCode {
     let Args {
-        command: Action::Check { profile, format },
+        command:
+            Action::Check {
+                profile,
+                format,
+                offline,
+            },
     } = Args::parse();
     let profile = match read_profile(profile) {
         Ok(p) => p,
@@ -56,7 +64,14 @@ async fn main() -> ExitCode {
             return ExitCode::from(2);
         }
     };
-    let report = check_profile(&profile, &SystemRunner, Platform::current()).await;
+    let report = check_profile_with(
+        &profile,
+        &SystemRunner,
+        Platform::current(),
+        &preflight_core::host::SystemHost,
+        !offline,
+    )
+    .await;
     match format {
         Format::Json => println!(
             "{}",

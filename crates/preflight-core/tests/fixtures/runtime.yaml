@@ -1,0 +1,19 @@
+schema_version: 1
+id: python-workshop
+name: "Python delavnica"
+checks:
+  - id: python
+    type: runtime
+    tool: python
+    version: ">=3.11.0"
+    required: true
+  - id: git
+    type: runtime
+    tool: git
+    version: ">=2.40.0"
+    required: true
+  - id: node
+    type: runtime
+    tool: node
+    version: ">=22.0.0,<23.0.0"
+    required: false

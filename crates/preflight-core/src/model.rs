@@ -14,6 +14,9 @@ pub enum Tool {
 #[serde(rename_all = "snake_case")]
 pub enum CheckType {
     Runtime,
+    VscodeExtension,
+    DiskSpace,
+    Https,
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -21,8 +24,16 @@ pub struct Check {
     pub id: String,
     #[serde(rename = "type")]
     pub check_type: CheckType,
-    pub tool: Tool,
-    pub version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool: Option<Tool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub extension: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub min_free_gb: Option<f64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
     pub required: bool,
 }
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -56,15 +67,20 @@ impl Profile {
             return Err(Error::new(ReasonCode::InvalidProfile));
         }
         for check in &data.checks {
-            if !valid_id(&check.id)
-                || !ids.insert(&check.id)
-                || check.version.len() > 128
-                || semver::VersionReq::parse(&check.version).is_err()
-            {
+            if !valid_id(&check.id) || !ids.insert(&check.id) || !check.valid() {
                 return Err(Error::new(ReasonCode::InvalidProfile));
             }
         }
         Ok(Self(data))
+    }
+    pub fn to_yaml(&self) -> Result<String, Error> {
+        serde_saphyr::to_string(&self.0).map_err(|_| Error::new(ReasonCode::InternalError))
+    }
+    pub fn has_network(&self) -> bool {
+        self.0
+            .checks
+            .iter()
+            .any(|c| matches!(c.check_type, CheckType::Https))
     }
     pub fn checks(&self) -> &[Check] {
         &self.0.checks
@@ -105,6 +121,18 @@ pub enum ReasonCode {
     InvalidProfile,
     ProfileUnreadable,
     InternalError,
+    ExtensionPresent,
+    ExtensionMissing,
+    VscodeUnavailable,
+    DiskAvailable,
+    DiskLow,
+    DiskUnavailable,
+    HttpsReachable,
+    HttpsStatus,
+    NetworkUnavailable,
+    NetworkSkipped,
+    UnsafeUrl,
+    RedirectLimit,
 }
 #[derive(Debug, Clone, Serialize)]
 pub struct Error {
@@ -115,7 +143,7 @@ pub struct Error {
 impl Error {
     pub fn new(reason_code: ReasonCode) -> Self {
         Self { schema_version: 1, reason_code, message_sl: match reason_code {
-  ReasonCode::InvalidProfile => "Profil ni veljaven. Preveri shemo 1, enolične ID-je, dovoljene runtime vrste in omejitve različic.",
+  ReasonCode::InvalidProfile => "Profil ni veljaven. Preveri shemo 1, enolične ID-je, dovoljene vrste in omejitve različic.",
   ReasonCode::ProfileUnreadable => "Profila ni mogoče prebrati. Preveri datoteko, dovoljenja in velikost do 64 KiB.",
   _ => "Preverjanja ni bilo mogoče izvesti.",
  } }
@@ -181,6 +209,57 @@ impl Report {
             0
         } else {
             1
+        }
+    }
+}
+
+impl Check {
+    fn valid(&self) -> bool {
+        match self.check_type {
+            CheckType::Runtime => {
+                self.tool.is_some()
+                    && self
+                        .version
+                        .as_ref()
+                        .is_some_and(|v| v.len() <= 128 && semver::VersionReq::parse(v).is_ok())
+                    && self.extension.is_none()
+                    && self.min_free_gb.is_none()
+                    && self.url.is_none()
+            }
+            CheckType::VscodeExtension => {
+                self.tool.is_none()
+                    && self.version.is_none()
+                    && self.min_free_gb.is_none()
+                    && self.url.is_none()
+                    && self.extension.as_ref().is_some_and(|s| {
+                        let parts: Vec<_> = s.split('.').collect();
+                        s.len() <= 128
+                            && parts.len() == 2
+                            && parts.iter().all(|p| {
+                                !p.is_empty()
+                                    && p.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-')
+                            })
+                    })
+            }
+            CheckType::DiskSpace => {
+                self.tool.is_none()
+                    && self.version.is_none()
+                    && self.extension.is_none()
+                    && self.url.is_none()
+                    && self
+                        .min_free_gb
+                        .is_some_and(|v| v.is_finite() && v > 0.0 && v <= 1000000.0)
+            }
+            CheckType::Https => {
+                self.tool.is_none()
+                    && self.version.is_none()
+                    && self.extension.is_none()
+                    && self.min_free_gb.is_none()
+                    && self
+                        .url
+                        .as_ref()
+                        .is_some_and(|u| crate::network::validate_url(u).is_ok())
+            }
         }
     }
 }
