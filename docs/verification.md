@@ -23,3 +23,9 @@ Tauri dev se zgradi in zažene. Ponovni vizualni pregled faze 03 je omejen: orod
 # Phase 04 verification
 
 Windows: 42 Rust tests, 9 component tests, Rust fmt/Clippy, TypeScript/ESLint and both frontend builds passed. The real Python workshop profile was run locally in offline mode. Fake host/network tests cover disk thresholds, unavailable VS Code, redirects, mixed DNS, DNS rebinding, private/metadata IPs and profile roundtrips. Native file dialogs require an interactive desktop smoke test; no claim of a completed manual export is made. CI is not awaited at the user's request.
+
+# Phase 05 verification
+
+Windows: 49 Rust tests total (including 7 API integration tests), 9 UI component tests, TypeScript/ESLint, Rust fmt and Clippy passed. The complete workspace build was run. API tests use real SQLite migrations in an isolated in-memory database and cover authorization, two sessions, cross-room access, opt-in validation, invalid results, expiry, deletion, payload/rate limits and CORS.
+
+A real HTTP smoke test on a loopback listener with an in-memory database successfully created a room, joined a participant, uploaded consented results, read teacher aggregates and deleted the room. Tokens were held only in local variables and not printed or saved. Production hosting and interactive native profile save dialogs remain unverified. GitHub CI is not awaited at the user's request.

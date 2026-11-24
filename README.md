@@ -48,7 +48,7 @@ cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --fo
 
 Exit codes: 0 = all required checks pass; 1 = at least one required check does not pass (including unknown results); 2 = an invalid or unreadable profile, or incorrect CLI usage. An optional version mismatch produces a warning. `unknown` never counts as a successful check.
 
-Profiles use `schema_version: 1`, unique IDs, and only `type: runtime` with `tool: python|git|node|java`. Java means JDK: both java and javac are checked. Version constraints follow Rust semver, for example `>=22.0.0,<23.0.0`; a bare `22.0.0` specifies a compatible range, while `=22.0.0` requires an exact version. Legacy Java versions such as 1.8.0_412 are normalized to 8.0.412. Unstable or unrecognized output produces an unknown result. YAML is limited to 64 KiB, 32 checks, and a nesting depth of 8; unknown fields, tags, aliases, and multiple documents are rejected.
+Profiles use `schema_version: 1`, unique IDs, and the allowed types `runtime`, `vscode_extension`, `disk_space`, and `https`. Runtime checks use `tool: python|git|node|java`. Java means JDK: both java and javac are checked. Version constraints follow Rust semver, for example `>=22.0.0,<23.0.0`; a bare `22.0.0` specifies a compatible range, while `=22.0.0` requires an exact version. Legacy Java versions such as 1.8.0_412 are normalized to 8.0.412. Unstable or unrecognized output produces an unknown result. YAML is limited to 64 KiB, 32 checks, and a nesting depth of 8; unknown fields, tags, aliases, and multiple documents are rejected.
 
 Each process has a 5-second timeout and a maximum combined output of 32 KiB; stdout and stderr are read concurrently with bounded buffers. Processes are spawned directly with static arguments, without a shell, and stopped when a limit is reached. Python lookup: Windows tries python, then py -3; Unix tries python3, then python. JSON contains no raw output, profile paths, or machine information. Check IDs come from the profile: do not put personal information in them. Do not commit diagnostic output to Git.
 
@@ -58,7 +58,7 @@ Each process has a 5-second timeout and a maximum combined output of 32 KiB; std
 
 The Privacy and Settings views explain local processing and offer system, light, and dark themes. Keyboard navigation uses Tab to move and Enter/Space to activate buttons and details. The interface includes visible focus indicators, a skip link, and a live results summary. Results remain in memory; only the theme preference is saved. The application calls preflight-core directly, without a CLI subprocess or API server requests.
 
-This phase includes one built-in profile. Profile import, additional diagnostics, and export are planned for phase 04. Teacher sharing is not available yet.
+Phase 03 introduced one built-in profile. Phase 04 extends this with the profiles and import/export features described below. Teacher sharing in the desktop UI is not available yet.
 
 ## Profiles and extended checks (phase 04)
 
@@ -90,3 +90,14 @@ cargo run -p preflight-cli -- check --profile profiles/python-workshop.yaml --fo
 ```
 
 Only profile-defined IDs and normalized versions appear in exported results; do not put personal data in profile IDs or names. Profiles cannot specify executable commands or script arguments.
+
+## Classroom API (phase 05)
+
+`npm run dev:server` starts the Axum/SQLite API at `127.0.0.1:3001`. SQLite migrations run automatically; configure it with the environment variables in `.env.example`. Teacher rooms expire after 24 hours by default. Teacher and participant bearer tokens have separate permissions; result uploads require explicit consent and accept only minimized structured data.
+
+See [API endpoints and payloads](docs/api.md), [privacy and retention](docs/privacy.md), and [deployment configuration](docs/deployment.md). The teacher dashboard and desktop room-sharing flow are planned for phase 06; phase 05 is a working API.
+
+```sh
+cargo test -p preflight-server
+cargo run -p preflight-server
+```
