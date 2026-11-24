@@ -221,3 +221,26 @@ test("startup failure offers retry and empty list is explained", async () => {
     await screen.findByText("Trenutno ni na voljo noben profil."),
   ).toBeInTheDocument();
 });
+
+test("individual recheck sends only the selected check ID", async () => {
+  const user = userEvent.setup();
+  render(<App />);
+  const start = await screen.findByRole("button", {
+    name: "Zaženi preverjanje",
+  });
+  await waitFor(() => expect(start).toBeEnabled());
+  await user.click(start);
+  await screen.findByText("Obvezne zahteve so izpolnjene.");
+  await user.click(screen.getByText("Python"));
+  await user.click(
+    screen.getByRole("button", { name: "Ponovno preveri to zahtevo" }),
+  );
+  await waitFor(() =>
+    expect(invokeMock).toHaveBeenLastCalledWith("run_checks", {
+      profileId: "python-workshop",
+      profileYaml: null,
+      allowNetwork: false,
+      checkId: "python",
+    }),
+  );
+});
