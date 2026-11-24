@@ -10,6 +10,7 @@ import {
   checkIcon,
 } from "./model";
 
+import SafeInstall from "./SafeInstall";
 import GuidedFix from "./GuidedFix";
 import Classroom from "./Classroom";
 import ProfileEditor from "./ProfileEditor";
@@ -435,6 +436,28 @@ export default function App() {
                               onRecheck={() => void run(check.id)}
                             />
                           )}
+                          {result &&
+                            platform === "windows" &&
+                            check.tool === "git" &&
+                            ["not_found", "version_mismatch"].includes(
+                              result.reason_code,
+                            ) &&
+                            report && (
+                              <SafeInstall
+                                profileId={profile.id}
+                                profileYaml={customYaml[profile.id]}
+                                checkId={check.id}
+                                report={report}
+                                disabled={running}
+                                onBusy={setRunning}
+                                onReport={(r) => {
+                                  setReport(r);
+                                  setLastRun(
+                                    new Date().toLocaleTimeString("sl-SI"),
+                                  );
+                                }}
+                              />
+                            )}
                           {result?.reason_code === "timeout" && (
                             <p>
                               Časovna omejitev ne pomeni, da program manjka.

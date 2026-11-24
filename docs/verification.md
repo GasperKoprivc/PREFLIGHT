@@ -37,3 +37,7 @@ A real HTTP smoke test on a loopback listener with an in-memory database success
 # Phase 07 verification
 
 53 Rust tests and 20 React tests passed, together with Rust fmt/Clippy, TS/ESLint and the complete workspace build. Tests cover single-check execution/rejection of arbitrary IDs, reason/OS guide mapping, static extension command allowlists, command safety, clipboard copying, official links and the selected-check IPC request. No software was installed by guide tests. Windows is the development OS; macOS/Linux instructions are documented manual procedures, not physically verified installations. GitHub Actions are not awaited.
+
+# Phase 08 verification
+
+58 Rust tests and 22 UI tests passed; Rust fmt/Clippy, TS/ESLint and full workspace build passed locally. Installer tests exclusively use fake runners. Verified winget version and live Git.Git 2.56.1 package metadata/source on Windows. Actual package installation/UAC through the UI was not executed; that phase 08 manual acceptance check remains open for an explicit user smoke test. macOS/Linux/ARM and other tools use manual fallback. CI intentionally not awaited.

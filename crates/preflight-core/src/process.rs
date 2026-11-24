@@ -175,6 +175,49 @@ fn windows_code() -> Result<Command, ProcessError> {
     }
     Err(ProcessError::NotFound)
 }
+
+impl crate::install::InstallRunner for SystemRunner {
+    async fn run_install(
+        &self,
+        invocation: crate::install::InstallInvocation,
+    ) -> Result<(), crate::install::InstallError> {
+        use crate::install::{InstallError, InstallInvocation};
+        if !cfg!(all(target_os = "windows", target_arch = "x86_64")) {
+            return Err(InstallError::ManagerUnavailable);
+        }
+        let (program, args) = invocation.command();
+        #[cfg(windows)]
+        let executable = std::env::var_os("LOCALAPPDATA")
+            .map(std::path::PathBuf::from)
+            .map(|p| p.join("Microsoft/WindowsApps/winget.exe"))
+            .filter(|p| p.is_file())
+            .ok_or(InstallError::ManagerUnavailable)?;
+        #[cfg(windows)]
+        let mut command = Command::new(executable);
+        #[cfg(not(windows))]
+        let mut command = Command::new(program);
+        #[cfg(windows)]
+        let _ = program;
+        command.args(args);
+        #[cfg(windows)]
+        command.creation_flags(0x08000000);
+        let timeout = if invocation == InstallInvocation::WingetVersion {
+            Duration::from_secs(5)
+        } else {
+            Duration::from_secs(300)
+        };
+        execute(command, timeout, 1024 * 1024)
+            .await
+            .map(|_| ())
+            .map_err(|e| match e {
+                ProcessError::NotFound => InstallError::ManagerUnavailable,
+                ProcessError::Timeout => InstallError::Timeout,
+                ProcessError::OutputLimit => InstallError::OutputLimit,
+                ProcessError::Failed => InstallError::Failed,
+            })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

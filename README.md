@@ -123,3 +123,9 @@ The dashboard polls every five seconds, shows the last successful refresh, probl
 Expand a desktop check result to see Slovenian guidance for its reason and operating system. The OS defaults to the native Rust platform and can be changed manually. The catalog covers missing runtimes, version/PATH mismatches, JDK problems, VS Code CLI/extensions, disk, HTTPS and unknown/timeout results. Official documentation and static copyable verification/install commands are included; no installation is executed by Preflight. Unknown extension IDs never become commands.
 
 **Ponovno preveri to zahtevo** rechecks only that ID from the validated profile and recomputes the summary, preserving other results from their previous check. A full report for the unchanged profile is required first. Rechecking does not share results automatically. See [troubleshooting](docs/troubleshooting.md) for platform details and limitations.
+
+## Confirmed installation (phase 08)
+
+The initial automatic-fix catalog supports only Git for Windows x64 via the fixed `Git.Git` 2.56.1 winget package, when that version matches the profile. Open the Git result, review the full action and explicitly click **Potrdi namestitev**. The backend uses an expiring single-use confirmation, a fixed argument registry, bounded execution and a global operation lock. Other platforms/tools retain manual guidance.
+
+See [supported actions, confirmation flow and smoke-test limits](docs/safe-installs.md). Package metadata and winget were checked on Windows; actual installation through the UI has not been physically confirmed. Tests use fake runners and never install software. The phase 08 manual-install acceptance check remains pending that explicit user smoke test.
