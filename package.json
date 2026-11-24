@@ -14,7 +14,10 @@
     "build": "npm run build --workspaces && cargo build --workspace",
     "build:desktop": "npm run tauri --workspace @preflight/desktop -- build --no-bundle",
     "lint": "npm run lint --workspaces && cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
-    "test": "cargo test --workspace && npm run test --workspaces --if-present"
+    "test": "cargo test --workspace && npm run test --workspaces --if-present",
+    "bundle:desktop": "npm run tauri --workspace @preflight/desktop -- build",
+    "check:version": "node scripts/check-version.mjs",
+    "smoke:api": "cargo build -p preflight-server --locked && node scripts/smoke-api.mjs"
   },
   "engines": {
     "node": ">=24.0.0"

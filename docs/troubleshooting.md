@@ -1,5 +1,11 @@
 # Odpravljanje težav
 
+## Testni paketi in samodejni Git popravek
+
+CI artefakti so nepodpisane testne gradnje. SmartScreen/Gatekeeper lahko paket blokira: uporabi odobren pregled skrbnika, preveri izvor, commit in SHA256SUMS ter ne izklapljaj zaščit. Linux paketi potrebujejo združljivo okolje z WebKitGTK 4.1; podpore starejšim distribucijam ne predpostavljaj. Glej docs/release.md.
+
+Samodejni Git popravek je omejen na Windows x64, winget in razpon, ki dovoljuje 2.56.1. Zahteva dodaten klik Potrdi namestitev. Če upravljalnik ali dovoljenja niso na voljo, uporabi ročni vodič. Ob neznanem izidu ročno preveri, ali namestitveni podproces še deluje; ne poskušaj sočasne ponovitve. Glej docs/safe-installs.md. Uspešen CI ne potrjuje resnične namestitve ali povišanja pravic.
+
 V namiznem pregledu razširi vrstico preverjanja. Vodič upošteva razlog (`reason_code`) in operacijski sistem; sistem lahko tudi ročno izbereš. Po popravku klikni **Ponovno preveri to zahtevo**. Ponovi se samo izbrano dovoljeno preverjanje, druge vrstice ostanejo iz zadnjega pregleda. Če želiš sveže rezultate celotnega okolja, uporabi gumb na vrhu. Rezultati se učitelju ne posodobijo samodejno.
 
 ## Python ni dosegljiv

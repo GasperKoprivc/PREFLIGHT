@@ -8,7 +8,7 @@ tokio.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 preflight-core.workspace = true
-sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "sqlite", "migrate", "macros"] }
+sqlx = { version = "0.9.1", default-features = false, features = ["runtime-tokio", "sqlite", "migrate", "macros"] }
 uuid = { version = "1", features = ["v4"] }
 sha2 = "0.10"
 subtle = "2"

@@ -41,3 +41,13 @@ A real HTTP smoke test on a loopback listener with an in-memory database success
 # Phase 08 verification
 
 58 Rust tests and 22 UI tests passed; Rust fmt/Clippy, TS/ESLint and full workspace build passed locally. Installer tests exclusively use fake runners. Verified winget version and live Git.Git 2.56.1 package metadata/source on Windows. Actual package installation/UAC through the UI was not executed; that phase 08 manual acceptance check remains open for an explicit user smoke test. macOS/Linux/ARM and other tools use manual fallback. CI intentionally not awaited.
+
+# Phase 09 verification
+
+58 Rust tests and 22 React tests passed, together with fmt/Clippy, TS/ESLint, full workspace build, version alignment and YAML/JS formatting checks. Real HTTP smoke: isolated in-memory API, two participants, only one opted-in upload, unauthorized access rejection, participant revocation and room deletion.
+
+Windows NSIS and MSI installers were built locally (unsigned, version 0.1.0). The production executable launched, loaded all six Python-workshop checks through native IPC and completed real diagnostics. It showed recognized Python/Git/Node versions, available disk space, and unknown VS Code CLI rather than false success. A full installer installation/UAC and cross-OS manual smoke test remain unverified. The native helper intermittently reports user input during actions, so no fully controlled end-to-end installation claim is made.
+
+SQLx upgraded to 0.9.1 and libsqlite3-sys to 0.39.1 after advisory findings. API tests and HTTP smoke passed after that change. cargo-audit now has zero vulnerabilities-list entries but three informational warnings (chrono/proc-macro-error maintenance and Linux GTK glib unsoundness), recorded without suppressions in docs/security-review.md. npm audit: zero vulnerabilities.
+
+CI and manual release workflows are implemented, with unsigned artifacts/checksums, explicit smoke-test gate and optional non-overwriting v0.1.0 tag. No workflow dispatch, tag, public release or deployment was performed. Remote Actions/artifact success and three-OS manual acceptance are intentionally pending user review; no CI waiting was done. Phase 10 was withdrawn by the user and is not part of the roadmap.

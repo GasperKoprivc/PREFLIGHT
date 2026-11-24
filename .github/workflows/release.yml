@@ -1,0 +1,59 @@
+name: Manual release preparation
+on:
+  workflow_dispatch:
+    inputs:
+      smoke_tests_confirmed:
+        description: "I manually verified the exact main commit on all target OS, including opt-in sharing and installation checks"
+        type: boolean
+        default: false
+        required: true
+      create_version_tag:
+        description: "Create v0.1.0 tag after checks and bundles succeed (does NOT publish a GitHub Release)"
+        type: boolean
+        default: false
+        required: true
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require reviewed main and manual smoke confirmation
+        env:
+          TARGET_REF: ${{ github.ref }}
+          SMOKE_CONFIRMED: ${{ inputs.smoke_tests_confirmed }}
+        run: |
+          test "$TARGET_REF" = 'refs/heads/main'
+          test "$SMOKE_CONFIRMED" = 'true'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Verify version alignment
+        run: node scripts/check-version.mjs
+  quality:
+    needs: gate
+    uses: ./.github/workflows/quality.yml
+  installers:
+    needs: quality
+    uses: ./.github/workflows/desktop.yml
+  tag:
+    if: inputs.create_version_tag
+    needs: [quality, installers]
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Create tag only after successful validation
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+        run: |
+          if git show-ref --verify --quiet refs/tags/v0.1.0; then
+            echo 'v0.1.0 already exists; refusing to move it'
+            exit 1
+          fi
+          git tag v0.1.0 "$RELEASE_SHA"
+          git push origin refs/tags/v0.1.0

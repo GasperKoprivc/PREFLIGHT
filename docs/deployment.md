@@ -1,5 +1,11 @@
 # API deployment
 
+For a same-origin HTTPS example, see `deploy/Caddyfile.example`. Replace the hostname and dashboard directory, configure DNS/firewall/TLS, and use the operator's approved deployment process. The example is not a deployed service. Add proxy abuse limits, connection limits and monitoring appropriate to the school. Keep SQLite on a persistent disk outside the web root, restricted to the service account.
+
+Build the dashboard with `npm run build --workspace @preflight/dashboard` and serve its dist folder. Forward `/api/*` and `/health` to the loopback API. Prefer same-origin hosting with CORS unset; use one exact allowed origin only for an intentional cross-origin setup. Never record Authorization, payloads or identifying query strings. Monitor cleanup failures and disk capacity. Test backup/restore in isolation and enforce short backup retention.
+
+See docs/release.md for unsigned installer limits and docs/pilot.md for the first 10–15 participant pilot.
+
 Run `cargo run -p preflight-server` from the repository root. SQLite is created on first startup and migrations in `apps/server/migrations` run automatically. No external database or SQLx CLI is needed. Configuration is read from process environment; `.env.example` is a reference, not auto-loaded.
 
 | Variable | Default | Meaning |
