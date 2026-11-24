@@ -1,10 +1,18 @@
 # Preflight
 
+## Test installers and pilot readiness (phase 09)
+
+After three-OS quality checks, CI builds unsigned Windows NSIS/MSI, native-architecture macOS DMG and Linux deb/AppImage artifacts, including checksums and a test-build notice. Installer creation does not certify a completed installation or platform smoke test.
+
+Use `npm run bundle:desktop` for a local bundle and `npm run check:version` for version alignment. The manual release-preparation workflow requires reviewed main and explicit smoke-test confirmation. Its optional v0.1.0 tag follows successful checks/bundles; it never automatically publishes a public GitHub Release. No tag/release is created while implementing this phase.
+
+See [release checks](docs/release.md), [deployment](docs/deployment.md), [privacy](docs/privacy.md) and the [10–15 participant pilot guide](docs/pilot.md).
+
 Preflight checks your local development environment before a workshop. The desktop application and CLI share the same Rust core. Results stay on your computer; teacher rooms and result sharing are planned for later phases.
 
 ## Development
 
-Requirements: Node.js 24+, npm, stable Rust, and the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/). Windows requires MSVC C++ Build Tools and WebView2; macOS requires Xcode Command Line Tools; Linux requires WebKitGTK 4.1 and the libraries listed in the CI workflow. Both cargo and npm must be on PATH. In PowerShell, use `npm.cmd` if script execution restrictions prevent running npm.
+Requirements: Node.js 24+, npm, stable Rust 1.94+ (SQLx requirement), and the [Tauri 2 prerequisites](https://v2.tauri.app/start/prerequisites/). Windows requires MSVC C++ Build Tools and WebView2; macOS requires Xcode Command Line Tools; Linux requires WebKitGTK 4.1 and the libraries listed in the CI workflow. Both cargo and npm must be on PATH. In PowerShell, use `npm.cmd` if script execution restrictions prevent running npm.
 
 From the repository root:
 

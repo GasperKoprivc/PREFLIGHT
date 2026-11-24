@@ -1,0 +1,58 @@
+name: Desktop installers (unsigned)
+on:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  bundle:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            bundles: nsis,msi
+            label: windows-x64
+          - os: macos-latest
+            bundles: dmg
+            label: macos-native
+          - os: ubuntu-24.04
+            bundles: deb,appimage
+            label: linux-x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Linux bundle dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf libfuse2t64
+      - run: npm ci
+      - name: Build unsigned installer
+        run: npm run tauri --workspace @preflight/desktop -- build --bundles ${{ matrix.bundles }}
+        env:
+          CI: "true"
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+      - name: Archive installers and checksums
+        shell: pwsh
+        run: |
+          $bundleRoot = Join-Path $env:GITHUB_WORKSPACE 'target/release/bundle'
+          $packages = Get-ChildItem -LiteralPath $bundleRoot -Recurse -File | Where-Object { $_.Extension -in @('.exe', '.msi', '.dmg', '.deb', '.AppImage') }
+          if ($packages.Count -eq 0) { throw 'No installers produced' }
+          New-Item -ItemType Directory -Path artifacts -Force | Out-Null
+          $hashes = foreach ($package in $packages) {
+            Copy-Item -LiteralPath $package.FullName -Destination artifacts
+            $hash = (Get-FileHash -LiteralPath $package.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($package.Name)"
+          }
+          $hashes | Set-Content -LiteralPath artifacts/SHA256SUMS.txt
+          'Unsigned test builds. Not notarized. No production-signing claim.' | Set-Content -LiteralPath artifacts/BUILD-NOTICE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: preflight-unsigned-${{ matrix.label }}-${{ github.sha }}
+          path: artifacts/*
+          if-no-files-found: error
+          retention-days: 14

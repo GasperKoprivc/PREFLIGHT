@@ -491,7 +491,7 @@ export default function App() {
                   <span aria-hidden="true">◇</span>
                   <p>
                     <strong>Rezultati ostanejo na tvojem računalniku.</strong>{" "}
-                    Preflight ne namešča programov in ne spreminja tvojih
+                    Samo preverjanje ne namešča programov in ne spreminja tvojih
                     nastavitev.
                   </p>
                 </div>
